@@ -14,5 +14,5 @@ public class Following {
     @Id
     private String followingId;
 
-    private String followingName;
+//    private String followingName;
 }

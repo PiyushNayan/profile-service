@@ -1,23 +1,18 @@
 package com.example.profileservice.dto;
 
-import com.example.profileservice.entity.Followers;
-import com.example.profileservice.entity.Following;
 import lombok.Data;
 
 import java.util.List;
 
 @Data
-public class ProfileDto {
+public class ProfileResponseDto {
 
-    private String profileId;
     private String profileName;
-    private String profileDesc;
     private String profileType;
     private String profileAvatar;
     private String profileStatus;
-    private int points;
-    private String role;
+    private String points;
     private String profileEmail;
-
-
+    private List<String> followers;
+    private List<String> following;
 }
