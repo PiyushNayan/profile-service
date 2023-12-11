@@ -10,6 +10,6 @@ public class Followers {
     private String followerId;
 
     private String profileId;
-    private String followerName;
+//    private String followerName;
 
 }

@@ -16,17 +16,25 @@ public class Profile {
     private String profileId;
     private String profileName;
     private String profileType;
+    private String profileDesc;
     private String profileAvatar;
     private String profileStatus;
-    private String rankingId;
-    private String points;
+    private String role;
+    private int points;
     private String profileEmail;
 
-    @OneToOne
-    @JoinColumn(name = "business_profile_id", nullable = true, unique = true)
-    private BusinessProfile businessProfile;
+//
+//    @OneToOne(fetch = FetchType.EAGER)
+//    @JoinColumn(name = "ranking_fk",nullable = false)
+//    private Ranking ranking;
 
-    private String role;
+    //    private String businessProfileId;
+
+//    @OneToOne
+//    @JoinColumn(name = "business_profile_id", nullable = true, unique = true)
+//    private BusinessProfile businessProfile;
+
+
 
 //    @OneToOne(mappedBy = "profile")
 //    private Ranking ranking;

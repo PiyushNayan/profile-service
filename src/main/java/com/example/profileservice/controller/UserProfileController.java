@@ -1,31 +1,31 @@
 package com.example.profileservice.controller;
 
 import com.example.profileservice.ApiHandler.ApiResponse;
-import com.example.profileservice.dto.FollowerDto;
-import com.example.profileservice.dto.FollowingDto;
 import com.example.profileservice.dto.ProfileDto;
+import com.example.profileservice.dto.ProfileResponseDto;
 import com.example.profileservice.entity.Profile;
-import com.example.profileservice.service.FollowersService;
+import com.example.profileservice.entity.ProfileFollowersFollowing;
+import com.example.profileservice.repository.SecProfileRepo;
 import com.example.profileservice.service.ProfileService;
 
+import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 
 
 @RestController
 @CrossOrigin
-@RequestMapping("/profile")
+@RequestMapping("/quora/profile")
 public class UserProfileController {
 
     @Autowired
     private ProfileService profileService;
 
-//    @Autowired
-//    private FollowersService followersService;
+    @Autowired
+    private SecProfileRepo secProfileRepo;
 
     @PostMapping("/addProfile")
     public ApiResponse<Boolean> addProfile (@RequestBody ProfileDto profileDto) {
@@ -38,45 +38,86 @@ public class UserProfileController {
                 apiResponse = new ApiResponse<>("404", "Could not add profile");
             }
         } catch (Exception e) {
-            apiResponse = new ApiResponse<>("404", "Could not add profile");
+            apiResponse = new ApiResponse<>("404", e.getMessage());
         }
         return apiResponse;
     }
+
+//
+//    @GetMapping("/getProfile/{profileId}")
+//    public ApiResponse<Profile> getProfile(@PathVariable("profileId") String profileId) {
+//        ApiResponse<Profile> apiResponse;
+//        ProfileResponseDto responseDto = new ProfileResponseDto();
+//        try {
+//            Profile profile = profileService.getProfileById(profileId);
+//
+//            if (profile==null) {
+//                apiResponse = new ApiResponse<>("404", "Check the profile id and try again, profile not found");
+//            } else {
+//                BeanUtils.copyProperties(profile, responseDto);
+//                apiResponse = new ApiResponse<>(profile);
+//            }
+//        } catch (Exception e) {
+//            apiResponse = new ApiResponse<>("404", "Check the profile id and try again, profile not found");
+//        }
+//
+//        return apiResponse;
+//    }
 
 
     @GetMapping("/getProfile/{profileId}")
-    public ApiResponse<Profile> getProfile(@PathVariable("profileId") String profileId) {
-        ApiResponse<Profile> apiResponse;
+    public ProfileResponseDto getProfile(@PathVariable("profileId") String profileId) {
+        ProfileResponseDto responseDto = new ProfileResponseDto();
         try {
             Profile profile = profileService.getProfileById(profileId);
-
-            if (profile==null) {
-                apiResponse = new ApiResponse<>("404", "Check the profile id and try again, profile not found");
-            } else {
-                apiResponse = new ApiResponse<>(profile);
-            }
-        } catch (Exception e) {
-            apiResponse = new ApiResponse<>("404", "Check the profile id and try again, profile not found");
+            ProfileFollowersFollowing profileFollowersFollowing = secProfileRepo.findByProfileId(profileId);
+//            if (profile!=null) {
+                BeanUtils.copyProperties(profile, responseDto);
+//            }
+//            if(profileFollowersFollowing!=null){
+                responseDto.setFollowers(profileFollowersFollowing.getFollowers());
+                responseDto.setFollowing(profileFollowersFollowing.getFollowing());
+//            }
         }
-
-        return apiResponse;
+        catch (Exception e) {
+            e.printStackTrace();
+        }
+        return responseDto;
     }
 
 
+//    @GetMapping("/profiles")
+//    public List<Profile> getAllProfiles() {
+//        ApiResponse<List<Profile>> apiResponse;
+//        Iterable<Profile> profiles = profileService.getAllProfiles();
+//        List<Profile> profilesList = new ArrayList<>();
+//        for (Profile profile : profiles) {
+//            profilesList.add(profile);
+//        }
+//        if (profilesList.isEmpty())
+//            apiResponse = new ApiResponse<>("404", "No profiles found");
+//        else
+//            apiResponse = new ApiResponse<>(profilesList);
+//
+//        return profilesList;
+//    }
+
     @GetMapping("/profiles")
-    public List<Profile> getAllProfiles() {
+    public List<ProfileResponseDto> getAllProfiles() {
         ApiResponse<List<Profile>> apiResponse;
         Iterable<Profile> profiles = profileService.getAllProfiles();
         List<Profile> profilesList = new ArrayList<>();
         for (Profile profile : profiles) {
             profilesList.add(profile);
         }
-        if (profilesList.isEmpty())
-            apiResponse = new ApiResponse<>("404", "No profiles found");
-        else
-            apiResponse = new ApiResponse<>(profilesList);
 
-        return profilesList;
+        List<ProfileResponseDto> responseDtos = new ArrayList<>();
+        for (Profile profile:profilesList) {
+            ProfileResponseDto profileResponseDto = new ProfileResponseDto();
+            BeanUtils.copyProperties(profile, profileResponseDto);
+            responseDtos.add(profileResponseDto);
+        }
+        return responseDtos;
     }
 
     @PutMapping("/{profileId}")
@@ -116,43 +157,11 @@ public class UserProfileController {
         return apiResponse;
     }
 
-//    @PostMapping("/addFollower")
-//    public ApiResponse<Boolean> addFollower (@RequestBody FollowerDto followerDto) {
-//        ApiResponse<Boolean> apiResponse;
-//        try {
-//            Boolean inserted = followersService.addFollower(followerDto);
-//            if (inserted) {
-//                apiResponse = new ApiResponse<>(true);
-//            } else {
-//                apiResponse = new ApiResponse<>("404", "Could not add Follower");
-//            }
-//        } catch (Exception e) {
-//            apiResponse = new ApiResponse<>("404", "Could not add Follower");
-//        }
-//        return apiResponse;
-//    }
-
-    @PostMapping("/follow")
-    public ApiResponse<Boolean> followUser (@RequestBody FollowingDto followingDto) {
+    @PutMapping("/addFollower")
+    public ApiResponse<Boolean> addFollower(@RequestParam("profileId") String profileId, @RequestParam("followerId") String followerId) {
         ApiResponse<Boolean> apiResponse;
         try {
-            Boolean inserted = profileService.followUser(followingDto);
-            if (inserted) {
-                apiResponse = new ApiResponse<>(true);
-            } else {
-                apiResponse = new ApiResponse<>("404", "Try again");
-            }
-        } catch (Exception e) {
-            apiResponse = new ApiResponse<>("404", "Try again");
-        }
-        return apiResponse;
-    }
-
-    @PostMapping("/addFollower/")
-    public ApiResponse<Boolean> addFollower (@RequestBody FollowerDto followerDto) {
-        ApiResponse<Boolean> apiResponse;
-        try {
-            Boolean inserted = profileService.addFollower(followerDto);
+            Boolean inserted = profileService.addFollower(profileId, followerId);
             if (inserted) {
                 apiResponse = new ApiResponse<>(true);
             } else {
@@ -164,8 +173,24 @@ public class UserProfileController {
         return apiResponse;
     }
 
-    @PutMapping("/removeFollower/{profileId}/{followerId}")
-    public ApiResponse<String> removeFollower(@PathVariable("profileId") String profileId, @PathVariable("followerId") String followerId) {
+    @PutMapping("/followUser")
+    public ApiResponse<Boolean> followUser(@RequestParam("profileId") String profileId, @RequestParam("followingId") String followingId) {
+        ApiResponse<Boolean> apiResponse;
+        try {
+            Boolean inserted = profileService.followUser(profileId, followingId);
+            if (inserted) {
+                apiResponse = new ApiResponse<>(true);
+            } else {
+                apiResponse = new ApiResponse<>("404", "Could not follow");
+            }
+        } catch (Exception e) {
+            apiResponse = new ApiResponse<>("404", "Could not follow");
+        }
+        return apiResponse;
+    }
+
+    @DeleteMapping("/removeFollower")
+    public ApiResponse<String> removeFollower(@RequestParam("profileId") String profileId, @RequestParam("followerId") String followerId) {
         ApiResponse<String> apiResponse;
         try {
             Boolean remove = profileService.removeFollower(profileId, followerId);
@@ -185,11 +210,11 @@ public class UserProfileController {
         return apiResponse;
     }
 
-    @PutMapping("/unfollowUser/{profileId}/{followingId}")
-    public ApiResponse<String> unfollow(@PathVariable("profileId") String profileId, @PathVariable("followerId") String followingId) {
+    @PostMapping("/unfollowUser")
+    public ApiResponse<String> unfollowUser(@RequestParam("profileId") String profileId, @RequestParam("followerId") String followingId) {
         ApiResponse<String> apiResponse;
         try {
-            Boolean remove = profileService.removeFollower(profileId, followingId);
+            Boolean remove = profileService.unfollowUser(profileId, followingId);
             if(remove) {
                 apiResponse = new ApiResponse<>("Follower removed");
             }

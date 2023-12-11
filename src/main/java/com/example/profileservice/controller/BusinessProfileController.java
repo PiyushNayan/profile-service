@@ -10,7 +10,7 @@ import org.springframework.web.bind.annotation.*;
 
 @RestController
 @CrossOrigin
-@RequestMapping("/businessProfile")
+@RequestMapping("/quora/businessProfile")
 public class BusinessProfileController {
 
     @Autowired
