@@ -36,29 +36,18 @@ public class ProfileServiceImpl implements ProfileService {
             Profile profile = new Profile();
             BeanUtils.copyProperties(profileDto, profile);
 
-            String rankingId = UUID.randomUUID().toString();
-//            profile.setRankingId(rankingId);
-//            profile.setRole(profileDto.getRole());
-//            profile.setProfileId(profileId);
-
-//            Ranking ranking = new Ranking();
-//            ranking.setId(rankingId);
-//            ranking.setPoints(0);
-//
-//            profile.setRanking(ranking);
-//
-//            ranking.setProfile(profile);
-
-
-
-//            rankingRepository.save(ranking);
 
             Profile newProfile = profileRepository.save(profile);
+
             ProfileFollowersFollowing profileFollowersFollowing = new ProfileFollowersFollowing();
+
             profileFollowersFollowing.setProfileId(profileDto.getProfileId());
             profileFollowersFollowing.setFollowers(new ArrayList<>());
             profileFollowersFollowing.setFollowing(new ArrayList<>());
+            profileFollowersFollowing.setCategories(new ArrayList<>());
+
             secProfileRepo.save(profileFollowersFollowing);
+
             return Objects.nonNull(newProfile);
         }
 
@@ -116,16 +105,21 @@ public class ProfileServiceImpl implements ProfileService {
         public Boolean removeFollower(String profileId, String followerId) {
             ProfileFollowersFollowing profile = secProfileRepo.findByProfileId(profileId);
             if (profile != null) {
-                List<String> followersList = profile.getFollowers();
-                if (followersList.contains(followerId)) {
-                    followersList.remove(followerId);
-                    try {
-                        secProfileRepo.save(profile);
-                        return true;
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                    }
-                }
+              List<String> followers =   profile.getFollowers();
+              followers.remove(followerId);
+              profile.setFollowers(followers);
+                secProfileRepo.save(profile);
+                return true;
+//                List<String> followersList = profile.getFollowers();
+//                if (followersList.contains(followerId)) {
+//                    followersList.remove(followerId);
+//                    try {
+//                        secProfileRepo.save(profile);
+//                        return true;
+//                    } catch (Exception e) {
+//                        e.printStackTrace();
+//                    }
+//                }
             }
             return false;
         }
@@ -134,16 +128,19 @@ public class ProfileServiceImpl implements ProfileService {
         public Boolean unfollowUser(String profileId, String followingId) {
             ProfileFollowersFollowing profile = secProfileRepo.findByProfileId(profileId);
             if (profile != null) {
-                List<String> followersList = profile.getFollowing();
-                if (followersList.contains(followingId)) {
-                    followersList.remove(followingId);
-                    try {
-                        secProfileRepo.save(profile);
-                        return true;
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                    }
-                }
+                List<String> followingList = profile.getFollowing();
+                followingList.remove(followingId);
+                profile.setFollowing(followingList);
+                secProfileRepo.save(profile);
+                //                if (followersList.contains(followingId)) {
+//                    followersList.remove(followingId);
+//                    try {
+//                        secProfileRepo.save(profile);
+//                        return true;
+//                    } catch (Exception e) {
+//                        e.printStackTrace();
+//                    }
+//                }
             }
             return false;
         }
