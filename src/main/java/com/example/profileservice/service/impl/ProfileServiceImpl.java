@@ -1,6 +1,8 @@
 package com.example.profileservice.service.impl;
 
+import com.example.profileservice.FeignClient.SolrFeign;
 import com.example.profileservice.dto.ProfileDto;
+import com.example.profileservice.dto.SearchDto;
 import com.example.profileservice.entity.Profile;
 import com.example.profileservice.entity.ProfileFollowersFollowing;
 import com.example.profileservice.entity.Ranking;
@@ -26,6 +28,9 @@ public class ProfileServiceImpl implements ProfileService {
         @Autowired
         private RankingRepository rankingRepository;
 
+        @Autowired
+        private SolrFeign solrFeign;
+
 
         public Profile getProfileById(String profileId) {
             return profileRepository.getProfileByProfileId(profileId);
@@ -36,7 +41,7 @@ public class ProfileServiceImpl implements ProfileService {
             Profile profile = new Profile();
             BeanUtils.copyProperties(profileDto, profile);
 
-            String rankingId = UUID.randomUUID().toString();
+            String profileId = UUID.randomUUID().toString();
 //            profile.setRankingId(rankingId);
 //            profile.setRole(profileDto.getRole());
 //            profile.setProfileId(profileId);
@@ -59,6 +64,14 @@ public class ProfileServiceImpl implements ProfileService {
             profileFollowersFollowing.setFollowers(new ArrayList<>());
             profileFollowersFollowing.setFollowing(new ArrayList<>());
             secProfileRepo.save(profileFollowersFollowing);
+
+            SearchDto searchDto = new SearchDto();
+            searchDto.setProfileId(profileId);
+            searchDto.setAvatar(profileDto.getProfileAvatar());
+            searchDto.setPoints(profile.getPoints());
+            searchDto.setSearchTerm(profileDto.getProfileName());
+            solrFeign.saveProfile(searchDto);
+
             return Objects.nonNull(newProfile);
         }
 

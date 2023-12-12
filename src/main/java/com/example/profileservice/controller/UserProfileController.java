@@ -1,10 +1,13 @@
 package com.example.profileservice.controller;
 
 import com.example.profileservice.ApiHandler.ApiResponse;
+import com.example.profileservice.FeignClient.SolrFeign;
 import com.example.profileservice.dto.ProfileDto;
 import com.example.profileservice.dto.ProfileResponseDto;
+import com.example.profileservice.dto.SearchDto;
 import com.example.profileservice.entity.Profile;
 import com.example.profileservice.entity.ProfileFollowersFollowing;
+import com.example.profileservice.repository.ProfileRepository;
 import com.example.profileservice.repository.SecProfileRepo;
 import com.example.profileservice.service.ProfileService;
 
@@ -26,6 +29,12 @@ public class UserProfileController {
 
     @Autowired
     private SecProfileRepo secProfileRepo;
+
+    @Autowired
+    private ProfileRepository profileRepository;
+
+    @Autowired
+    private SolrFeign solrFeign;
 
     @PostMapping("/addProfile")
     public ApiResponse<Boolean> addProfile (@RequestBody ProfileDto profileDto) {
@@ -229,6 +238,21 @@ public class UserProfileController {
         }
 
         return apiResponse;
+    }
+
+    @PutMapping("/updatePoints")
+    public void updatePoints(@RequestParam("profileId") String profileId,@RequestParam("points") int points){
+        Profile profile = profileRepository.findById(profileId).get();
+        int points1 = profile.getPoints();
+        profile.setPoints(points+points1);
+
+        SearchDto searchDto = new SearchDto();
+        searchDto.setProfileId(profileId);
+        searchDto.setSearchTerm(profile.getProfileName());
+        searchDto.setAvatar(profile.getProfileAvatar());
+        searchDto.setPoints(profile.getPoints());
+        solrFeign.updateUser(profileId, searchDto);
+        profileRepository.save(profile);
     }
 
 }
