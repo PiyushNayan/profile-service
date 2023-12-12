@@ -3,7 +3,7 @@ package com.example.profileservice.entity;
 import lombok.Data;
 import org.springframework.data.mongodb.core.mapping.Document;
 
-import javax.persistence.Id;
+import org.springframework.data.annotation.Id;
 import java.util.List;
 
 @Data
@@ -12,6 +12,10 @@ public class ProfileFollowersFollowing {
 
     @Id
     private String profileId;
+
     private List<String> followers;
     private List<String> following;
+
+    private List<String> categories;
+
 }

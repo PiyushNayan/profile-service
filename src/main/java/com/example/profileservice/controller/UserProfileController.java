@@ -5,6 +5,7 @@ import com.example.profileservice.dto.ProfileDto;
 import com.example.profileservice.dto.ProfileResponseDto;
 import com.example.profileservice.entity.Profile;
 import com.example.profileservice.entity.ProfileFollowersFollowing;
+import com.example.profileservice.repository.ProfileRepository;
 import com.example.profileservice.repository.SecProfileRepo;
 import com.example.profileservice.service.ProfileService;
 
@@ -23,6 +24,9 @@ public class UserProfileController {
 
     @Autowired
     private ProfileService profileService;
+
+    @Autowired
+    private ProfileRepository profileRepository;
 
     @Autowired
     private SecProfileRepo secProfileRepo;
@@ -65,8 +69,8 @@ public class UserProfileController {
 //    }
 
 
-    @GetMapping("/getProfile/{profileId}")
-    public ProfileResponseDto getProfile(@PathVariable("profileId") String profileId) {
+    @GetMapping("/getProfileView/{profileId}")
+    public ProfileResponseDto getProfileView(@PathVariable("profileId") String profileId) {
         ProfileResponseDto responseDto = new ProfileResponseDto();
         try {
             Profile profile = profileService.getProfileById(profileId);
@@ -83,6 +87,21 @@ public class UserProfileController {
             e.printStackTrace();
         }
         return responseDto;
+    }
+
+    @GetMapping("/getProfile/{profileId}")
+    public Profile getProfile(@PathVariable("profileId") String profileId) {
+        Profile profile;
+        ProfileResponseDto responseDto = new ProfileResponseDto();
+        try {
+             profile = profileService.getProfileById(profileId);
+            return profile;
+
+        }
+        catch (Exception e) {
+            e.printStackTrace();
+        }
+        return null;
     }
 
 
@@ -157,7 +176,8 @@ public class UserProfileController {
         return apiResponse;
     }
 
-    @PutMapping("/addFollower")
+
+    @PostMapping("/addFollower")
     public ApiResponse<Boolean> addFollower(@RequestParam("profileId") String profileId, @RequestParam("followerId") String followerId) {
         ApiResponse<Boolean> apiResponse;
         try {
@@ -173,7 +193,7 @@ public class UserProfileController {
         return apiResponse;
     }
 
-    @PutMapping("/followUser")
+    @PostMapping("/followUser")
     public ApiResponse<Boolean> followUser(@RequestParam("profileId") String profileId, @RequestParam("followingId") String followingId) {
         ApiResponse<Boolean> apiResponse;
         try {
@@ -229,6 +249,30 @@ public class UserProfileController {
         }
 
         return apiResponse;
+    }
+
+    @PostMapping("/addCategories")
+    public ApiResponse<Boolean> addCategories(@RequestParam("profileId") String profileId, @RequestBody List<String> categories) {
+        ApiResponse<Boolean> apiResponse;
+        try {
+            ProfileFollowersFollowing followersFollowing = secProfileRepo.findByProfileId(profileId);
+            followersFollowing.setCategories(categories);
+            secProfileRepo.save(followersFollowing);
+
+            apiResponse = new ApiResponse<>(true);
+
+        } catch (Exception e) {
+            apiResponse = new ApiResponse<>("404", "Could not add Follower");
+        }
+        return apiResponse;
+    }
+
+    @PutMapping("/updatePoints")
+    public void updatePoints(@RequestParam("profileId") String profileId, @RequestParam("points") int points){
+        Profile profile = profileRepository.findById(profileId).get();
+        int points1 = profile.getPoints();
+        profile.setPoints(points+points1);
+        profileRepository.save(profile);
     }
 
 }
