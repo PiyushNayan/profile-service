@@ -15,7 +15,6 @@ public class ProfileDto {
     private String profileType;
     private String profileAvatar;
     private String profileStatus;
-    private int points;
     private String role;
     private String profileEmail;
 
