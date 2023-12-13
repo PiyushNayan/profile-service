@@ -1,6 +1,8 @@
 package com.example.profileservice.service.impl;
 
+import com.example.profileservice.FeignClient.SolrFeign;
 import com.example.profileservice.dto.ProfileDto;
+import com.example.profileservice.dto.SearchDto;
 import com.example.profileservice.entity.Profile;
 import com.example.profileservice.entity.ProfileFollowersFollowing;
 import com.example.profileservice.entity.Ranking;
@@ -26,6 +28,9 @@ public class ProfileServiceImpl implements ProfileService {
         @Autowired
         private RankingRepository rankingRepository;
 
+        @Autowired
+        private SolrFeign solrFeign;
+
 
         public Profile getProfileById(String profileId) {
             return profileRepository.getProfileByProfileId(profileId);
@@ -47,6 +52,13 @@ public class ProfileServiceImpl implements ProfileService {
             profileFollowersFollowing.setCategories(new ArrayList<>());
 
             secProfileRepo.save(profileFollowersFollowing);
+
+            SearchDto searchDto = new SearchDto();
+            searchDto.setProfileId(profileDto.getProfileId());
+            searchDto.setAvatar(profileDto.getProfileAvatar());
+            searchDto.setPoints(profile.getPoints());
+            searchDto.setSearchTerm(profileDto.getProfileName());
+            solrFeign.saveProfile(searchDto);
 
             return Objects.nonNull(newProfile);
         }

@@ -1,8 +1,10 @@
 package com.example.profileservice.controller;
 
 import com.example.profileservice.ApiHandler.ApiResponse;
+import com.example.profileservice.FeignClient.SolrFeign;
 import com.example.profileservice.dto.ProfileDto;
 import com.example.profileservice.dto.ProfileResponseDto;
+import com.example.profileservice.dto.SearchDto;
 import com.example.profileservice.entity.Profile;
 import com.example.profileservice.entity.ProfileFollowersFollowing;
 import com.example.profileservice.repository.ProfileRepository;
@@ -30,6 +32,9 @@ public class UserProfileController {
 
     @Autowired
     private SecProfileRepo secProfileRepo;
+
+    @Autowired
+    private SolrFeign solrFeign;
 
     @PostMapping("/addProfile")
     public ApiResponse<Boolean> addProfile (@RequestBody ProfileDto profileDto) {
@@ -262,7 +267,7 @@ public class UserProfileController {
             apiResponse = new ApiResponse<>(true);
 
         } catch (Exception e) {
-            apiResponse = new ApiResponse<>("404", "Could not add Follower");
+            apiResponse = new ApiResponse<>("404", "Could not add categories");
         }
         return apiResponse;
     }
@@ -273,6 +278,30 @@ public class UserProfileController {
         int points1 = profile.getPoints();
         profile.setPoints(points+points1);
         profileRepository.save(profile);
+
+        SearchDto searchDto = new SearchDto();
+        searchDto.setProfileId(profileId);
+        searchDto.setSearchTerm(profile.getProfileName());
+        searchDto.setAvatar(profile.getProfileAvatar());
+        searchDto.setPoints(profile.getPoints());
+        solrFeign.updateUser(profileId, searchDto);
+
+    }
+
+    @PostMapping("/addCategory")
+    public Boolean addCategory(@RequestParam("userId") String userId, @RequestParam("category") String category) {
+        ProfileFollowersFollowing profile = secProfileRepo.findByProfileId(userId);
+        List<String> categories = profile.getCategories();
+        categories.add(category);
+        profile.setCategories(categories);
+        secProfileRepo.save(profile);
+        return true;
+    }
+
+    @GetMapping("/getCategoriesByUserId")
+    public ApiResponse<List<String>> getCategoriesByUserId(@RequestParam("userId") String userId) {
+        ProfileFollowersFollowing profile = secProfileRepo.findByProfileId(userId);
+        return new ApiResponse<>(profile.getCategories());
     }
 
 }
