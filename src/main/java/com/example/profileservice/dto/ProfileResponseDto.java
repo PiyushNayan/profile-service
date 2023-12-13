@@ -11,7 +11,7 @@ public class ProfileResponseDto {
     private String profileType;
     private String profileAvatar;
     private String profileStatus;
-    private String points;
+    private int points;
     private String profileEmail;
     private List<String> followers;
     private List<String> following;
